@@ -7,10 +7,11 @@ function helperPath() {
   return bundle + '/Contents/Resources/switcher.sh';
 }
 function shellQuote(s) { return "'" + String(s).replace(/'/g, "'\\''") + "'"; }
-function runHelper(action, one, two) {
+function runHelper(action, one, two, three) {
   let command = shellQuote(helperPath()) + ' ' + shellQuote(action);
   if (one) command += ' ' + shellQuote(one);
   if (two) command += ' ' + shellQuote(two);
+  if (three) command += ' ' + shellQuote(three);
   return app.doShellScript(command);
 }
 function ensureKey(account, name) {
@@ -46,9 +47,9 @@ function importSiliconFlow() {
   ];
   app.openLocation('ccswitch://v1/import?' + params.join('&'));
 }
-function run() {
+function globalMode() {
   const choices = ['OpenAI', 'DeepSeek V4 Flash', 'DeepSeek V4 Pro', 'SiliconFlow（需要本机兼容网关）', '恢复上一次配置'];
-  const picked = app.chooseFromList(choices, {withPrompt: '选择要使用的模型（切换后请重启 Codex）', defaultItems: ['OpenAI']});
+  const picked = app.chooseFromList(choices, {withPrompt: '全局切换：之后打开的 Codex 都使用这个模型', defaultItems: ['OpenAI']});
   if (!picked) return;
   try {
     switch (picked[0]) {
@@ -62,6 +63,36 @@ function run() {
       case '恢复上一次配置': runHelper('restore', '', ''); break;
     }
     app.displayDialog('操作完成。请完全退出 Codex，然后重新打开。', {buttons: ['好'], defaultButton: '好', withTitle: 'Codex 模型一键切换'});
+  } catch (e) {
+    if (String(e).includes('User canceled')) return;
+    app.displayDialog('操作失败：\n' + e, {buttons: ['好'], defaultButton: '好', withIcon: 'stop'});
+  }
+}
+
+function independentMode() {
+  const models = ['OpenAI GPT-5.6', 'DeepSeek V4 Flash', 'DeepSeek V4 Pro'];
+  const picked = app.chooseFromList(models, {withPrompt: '选择这个独立 Codex 窗口使用的模型', defaultItems: ['OpenAI GPT-5.6']});
+  if (!picked) return;
+  let profile = 'openai';
+  if (picked[0] === 'DeepSeek V4 Flash') profile = 'deepseek-flash';
+  if (picked[0] === 'DeepSeek V4 Pro') profile = 'deepseek-pro';
+  if (profile.indexOf('deepseek') === 0) ensureKey('deepseek', 'DeepSeek');
+
+  const folder = app.chooseFolder({withPrompt: '选择这个窗口要打开的项目文件夹'});
+  const projectPath = folder.toString();
+  const mode = app.displayDialog('怎样打开这个项目？\n\n“安全 Worktree”会为 Git 项目建立独立副本，最适合两个模型同时工作。\n“共享原目录”会让两个窗口直接操作同一批文件。', {
+    buttons: ['取消', '共享原目录', '安全 Worktree'], defaultButton: '安全 Worktree', cancelButton: '取消', withTitle: '独立 Codex 窗口'
+  }).buttonReturned === '安全 Worktree' ? 'worktree' : 'shared';
+  const result = runHelper('launch-session', profile, projectPath, mode).trim();
+  app.displayDialog('新的 Codex 已在 Terminal 中启动。\n\n模型：' + picked[0] + '\n项目：' + projectPath + '\n方式：' + (mode === 'worktree' ? '安全 Worktree' : '共享原目录') + '\n\n全局 Codex 配置没有被修改。', {buttons: ['好'], defaultButton: '好', withTitle: '已启动'});
+}
+
+function run() {
+  try {
+    const modes = ['新开独立 Codex 窗口', '全局切换默认模型'];
+    const picked = app.chooseFromList(modes, {withPrompt: '你想怎样使用？', defaultItems: ['新开独立 Codex 窗口']});
+    if (!picked) return;
+    if (picked[0] === '新开独立 Codex 窗口') independentMode(); else globalMode();
   } catch (e) {
     if (String(e).includes('User canceled')) return;
     app.displayDialog('操作失败：\n' + e, {buttons: ['好'], defaultButton: '好', withIcon: 'stop'});
