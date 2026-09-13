@@ -8,6 +8,8 @@ MODELS="$CODEX_DIR/models.json"
 STATE="$CODEX_DIR/model-switcher"
 BACKUP="$STATE/last-backup"
 RESOURCE_DIR="${0:A:h}"
+SCRIPT_PATH="${0:A}"
+REAL_CODEX_DIR="$HOME/.codex"
 
 save_key() {
   /usr/bin/security add-generic-password -U -s "$SERVICE" -a "$1" -w "$2" >/dev/null
@@ -106,10 +108,61 @@ patch_config() {
       print 'refresh_interval_ms = 0'
     fi
   } > "$tmp"
-  [[ -s "$RESOURCE_DIR/deepseek-models.json" ]] || { print -u2 '应用内缺少 DeepSeek 模型目录。'; exit 1; }
   mv "$tmp" "$CONFIG"
   rm -f "$tmp.body"
-  if [[ -n "$catalog" ]]; then cp "$RESOURCE_DIR/deepseek-models.json" "$MODELS"; fi
+  if [[ -n "$catalog" ]]; then
+    [[ -s "$RESOURCE_DIR/deepseek-models.json" ]] || { print -u2 '应用内缺少 DeepSeek 模型目录。'; exit 1; }
+    cp "$RESOURCE_DIR/deepseek-models.json" "$MODELS"
+  fi
+}
+
+find_codex() {
+  local found
+  found="$(command -v codex 2>/dev/null || true)"
+  [[ -n "$found" ]] || found="/Applications/ChatGPT.app/Contents/Resources/codex"
+  [[ -x "$found" ]] || { print -u2 '没有找到 Codex 命令行程序，请先安装或更新 Codex。'; exit 1; }
+  print -r -- "$found"
+}
+
+prepare_session() {
+  local profile="$1" session_home="$REAL_CODEX_DIR/model-switcher/sessions/$profile"
+  mkdir -p "$session_home"
+  if [[ -f "$REAL_CODEX_DIR/config.toml" ]]; then
+    cp "$REAL_CODEX_DIR/config.toml" "$session_home/config.toml"
+  else
+    : > "$session_home/config.toml"
+  fi
+  CODEX_HOME="$session_home" "$SCRIPT_PATH" switch "$profile"
+  for shared in auth.json AGENTS.md skills plugins; do
+    if [[ -e "$REAL_CODEX_DIR/$shared" && ! -e "$session_home/$shared" ]]; then
+      ln -s "$REAL_CODEX_DIR/$shared" "$session_home/$shared"
+    fi
+  done
+  print -r -- "$session_home"
+}
+
+launch_session() {
+  local profile="$1" project="$2" mode="$3" session_home codex_bin launcher launch_dir
+  [[ -d "$project" ]] || { print -u2 '选择的项目文件夹不存在。'; exit 1; }
+  session_home="$(prepare_session "$profile")"
+  codex_bin="$(find_codex)"
+  launch_dir="$REAL_CODEX_DIR/model-switcher/launchers"
+  mkdir -p "$launch_dir"
+  launcher="$launch_dir/codex-${profile}-$(date +%Y%m%d-%H%M%S).command"
+  {
+    print '#!/bin/zsh'
+    print 'set -e'
+    printf 'export CODEX_HOME=%q\n' "$session_home"
+    printf 'cd %q\n' "$project"
+    if [[ "$mode" == worktree ]]; then
+      printf 'exec %q -C %q --worktree\n' "$codex_bin" "$project"
+    else
+      printf 'exec %q -C %q\n' "$codex_bin" "$project"
+    fi
+  } > "$launcher"
+  chmod 700 "$launcher"
+  if [[ "${CODEX_SWITCHER_NO_OPEN:-}" != 1 ]]; then /usr/bin/open -a Terminal "$launcher"; fi
+  print -r -- "$launcher"
 }
 
 case "${1:-}" in
@@ -119,6 +172,7 @@ case "${1:-}" in
   cc-status) cc_app_path ;;
   install-cc-switch) install_cc_switch ;;
   switch) backup_now; patch_config "${2:?}" ;;
+  launch-session) launch_session "${2:?}" "${3:?}" "${4:?}" ;;
   restore) restore_last ;;
   *) print -u2 '无效操作。'; exit 2 ;;
 esac
