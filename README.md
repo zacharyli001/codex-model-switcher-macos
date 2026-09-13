@@ -1,6 +1,15 @@
 # Codex Model Switcher（macOS MVP）
 
-一个原生菜单栏工具，在 OpenAI、DeepSeek V4 Flash、DeepSeek V4 Pro 与 SiliconFlow 网关配置之间切换。
+一个原生轻量工具，在 OpenAI、DeepSeek V4 Flash、DeepSeek V4 Pro 与 SiliconFlow 网关配置之间切换。v3 新增“独立 Codex 窗口”：选模型、选项目，然后直接启动，不修改全局配置。
+
+## v3 双模式
+
+- **新开独立 Codex 窗口**：选择 GPT-5.6 或 DeepSeek、选择任意项目，在 Terminal 启动一个独立会话。不需要重启桌面端，也不会改动当前 Codex 的模型。
+- **全局切换默认模型**：保留 v2 的一键切换、SiliconFlow + CC Switch 网关整合和一键恢复。
+- **安全 Worktree**：对 Git 项目建立独立工作副本，适合 GPT-5.6 和 DeepSeek 同时推进同一项目。
+- **共享原目录**：两个窗口直接操作同一批文件；只建议用于任务明确分区的情况。
+
+独立窗口会复用你现有的 MCP、插件、Skills 和项目权限，但把模型配置放在 `~/.codex/model-switcher/sessions/`，因此不会相互抢占全局 `config.toml`。
 
 ## 安全与配置保护
 
