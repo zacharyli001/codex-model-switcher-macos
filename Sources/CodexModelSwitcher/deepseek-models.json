@@ -1,0 +1,50 @@
+{
+  "models": [
+    {
+      "slug": "deepseek-flash",
+      "display_name": "DeepSeek-Flash",
+      "description": "DeepSeek V4 Flash with image input",
+      "context_window": 1048576,
+      "max_context_window": 1048576,
+      "effective_context_window_percent": 95,
+      "input_modalities": ["text", "image"],
+      "supports_image_detail_original": true,
+      "prefer_websockets": false,
+      "support_verbosity": true,
+      "default_verbosity": "low",
+      "apply_patch_tool_type": "freeform",
+      "web_search_tool_type": "text",
+      "supports_parallel_tool_calls": true,
+      "default_reasoning_level": "high",
+      "supported_reasoning_levels": [{"effort":"low","description":"Fast"},{"effort":"high","description":"Deep"},{"effort":"max","description":"Maximum"}],
+      "shell_type": "shell_command",
+      "visibility": "list",
+      "minimal_client_version": "0.144.0",
+      "supported_in_api": true,
+      "priority": 1
+    },
+    {
+      "slug": "deepseek-v4-pro",
+      "display_name": "DeepSeek-V4-Pro",
+      "description": "DeepSeek V4 Pro",
+      "context_window": 1048576,
+      "max_context_window": 1048576,
+      "effective_context_window_percent": 95,
+      "input_modalities": ["text"],
+      "supports_image_detail_original": false,
+      "prefer_websockets": false,
+      "support_verbosity": true,
+      "default_verbosity": "low",
+      "apply_patch_tool_type": "freeform",
+      "web_search_tool_type": "text",
+      "supports_parallel_tool_calls": true,
+      "default_reasoning_level": "high",
+      "supported_reasoning_levels": [{"effort":"low","description":"Fast"},{"effort":"high","description":"Deep"},{"effort":"max","description":"Maximum"}],
+      "shell_type": "shell_command",
+      "visibility": "list",
+      "minimal_client_version": "0.144.0",
+      "supported_in_api": true,
+      "priority": 2
+    }
+  ]
+}
