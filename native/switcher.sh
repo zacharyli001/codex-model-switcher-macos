@@ -31,6 +31,83 @@ save_siliconflow_model() {
   print -r -- "$1" > "$REAL_CODEX_DIR/model-switcher/siliconflow-model.txt"
 }
 
+app_bundle_path() {
+  local resources="${SCRIPT_PATH:A:h}"
+  (cd "$resources/../.." && pwd)
+}
+
+version_gt() {
+  local left="$1" right="$2" i l r
+  local -a left_parts right_parts
+  left_parts=("${(@s:.:)left}")
+  right_parts=("${(@s:.:)right}")
+  for i in 1 2 3; do
+    l="${left_parts[i]:-0}"; r="${right_parts[i]:-0}"
+    (( l > r )) && return 0
+    (( l < r )) && return 1
+  done
+  return 1
+}
+
+auto_update() {
+  local app_path current release_json tag latest asset_url workdir mount_dir source_app new_app backup_path
+  app_path="$(app_bundle_path)"
+  current="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app_path/Contents/Info.plist" 2>/dev/null || print '0.0.0')"
+  release_json="$(mktemp "${TMPDIR:-/tmp}/codex-switcher-release.XXXXXX")"
+  if ! /usr/bin/curl -fsS --connect-timeout 3 --max-time 8 'https://api.github.com/repos/zacharyli001/codex-model-switcher-macos/releases/latest' -o "$release_json"; then
+    rm -f "$release_json"
+    print "CURRENT|$current"
+    return 0
+  fi
+  tag="$(/usr/bin/sed -nE 's/^[[:space:]]*"tag_name"[[:space:]]*:[[:space:]]*"v?([^"]+)".*/\1/p' "$release_json" | /usr/bin/head -1)"
+  latest="$tag"
+  asset_url="$(/usr/bin/sed -nE 's/^[[:space:]]*"browser_download_url"[[:space:]]*:[[:space:]]*"([^"]*Codex-Model-Switcher-macOS[^" ]*\.dmg)".*/\1/p' "$release_json" | /usr/bin/head -1)"
+  rm -f "$release_json"
+  [[ -n "$latest" && -n "$asset_url" ]] || { print "CURRENT|$current"; return 0; }
+  version_gt "$latest" "$current" || { print "CURRENT|$current"; return 0; }
+
+  workdir="$(mktemp -d "${TMPDIR:-/tmp}/codex-switcher-update.XXXXXX")"
+  mount_dir="$workdir/mount"
+  mkdir -p "$mount_dir"
+  if ! /usr/bin/curl -fL --retry 2 --connect-timeout 8 --max-time 120 "$asset_url" -o "$workdir/update.dmg"; then
+    rm -rf "$workdir"
+    print "CURRENT|$current"
+    return 0
+  fi
+  if ! /usr/bin/hdiutil attach "$workdir/update.dmg" -nobrowse -readonly -mountpoint "$mount_dir" >/dev/null 2>&1; then
+    rm -rf "$workdir"
+    print "CURRENT|$current"
+    return 0
+  fi
+  source_app="$(/usr/bin/find "$mount_dir" -maxdepth 2 -name 'Codex Model Switcher.app' -print -quit)"
+  if [[ -z "$source_app" ]]; then
+    /usr/bin/hdiutil detach "$mount_dir" >/dev/null 2>&1 || true
+    rm -rf "$workdir"
+    print "CURRENT|$current"
+    return 0
+  fi
+  new_app="$app_path.update"
+  rm -rf "$new_app"
+  if ! /usr/bin/ditto "$source_app" "$new_app"; then
+    /usr/bin/hdiutil detach "$mount_dir" >/dev/null 2>&1 || true
+    rm -rf "$workdir" "$new_app"
+    print "CURRENT|$current"
+    return 0
+  fi
+  /usr/bin/hdiutil detach "$mount_dir" >/dev/null 2>&1 || true
+  backup_path="$REAL_CODEX_DIR/model-switcher/update-backups/Codex Model Switcher.app.$current.$(date +%Y%m%d-%H%M%S)"
+  mkdir -p "${backup_path:h}"
+  if ! mv "$app_path" "$backup_path" || ! mv "$new_app" "$app_path"; then
+    [[ -e "$app_path" ]] || mv "$backup_path" "$app_path"
+    rm -rf "$workdir" "$new_app"
+    print "CURRENT|$current"
+    return 0
+  fi
+  rm -rf "$workdir"
+  /usr/bin/open "$app_path" >/dev/null 2>&1 || true
+  print "UPDATED|$current|$latest"
+}
+
 cc_app_path() {
   for candidate in "/Applications/CC Switch.app" "$HOME/Applications/CC Switch.app"; do
     [[ -d "$candidate" ]] && { print -r -- "$candidate"; return 0; }
@@ -124,6 +201,8 @@ patch_config() {
   rm -f "$tmp.body"
   if [[ -n "$catalog" ]]; then
     [[ -s "$RESOURCE_DIR/deepseek-models.json" ]] || { print -u2 '应用内缺少 DeepSeek 模型目录。'; exit 1; }
+    /usr/bin/grep -q '"truncation_policy"' "$RESOURCE_DIR/deepseek-models.json" || { print -u2 '应用内 DeepSeek 模型目录版本过旧，请先更新工具。'; exit 1; }
+    /usr/bin/grep -q '"experimental_supported_tools"' "$RESOURCE_DIR/deepseek-models.json" || { print -u2 '应用内 DeepSeek 模型目录版本过旧，请先更新工具。'; exit 1; }
     cp "$RESOURCE_DIR/deepseek-models.json" "$MODELS"
   fi
 }
@@ -179,14 +258,3 @@ launch_session() {
 
 case "${1:-}" in
   save-key) save_key "${2:?}" "${3:?}" ;;
-  has-key) has_key "${2:?}" ;;
-  get-key) /usr/bin/security find-generic-password -s "$SERVICE" -a "${2:?}" -w ;;
-  list-siliconflow-models) list_siliconflow_models ;;
-  save-siliconflow-model) save_siliconflow_model "${2:?}" ;;
-  cc-status) cc_app_path ;;
-  install-cc-switch) install_cc_switch ;;
-  switch) backup_now; patch_config "${2:?}" ;;
-  launch-session) launch_session "${2:?}" "${3:?}" "${4:?}" ;;
-  restore) restore_last ;;
-  *) print -u2 '无效操作。'; exit 2 ;;
-esac
