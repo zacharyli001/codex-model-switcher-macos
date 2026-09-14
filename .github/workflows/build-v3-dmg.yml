@@ -1,5 +1,6 @@
 name: Build v3.1.2 DMG
 
+# Rebuild after the Cocoa launcher source is present.
 on:
   workflow_dispatch:
   push:
