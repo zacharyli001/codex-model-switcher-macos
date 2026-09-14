@@ -17,6 +17,15 @@ function runHelper(action, one, two, three) {
   if (three) command += ' ' + shellQuote(three);
   return app.doShellScript(command);
 }
+function autoUpdate() {
+  try {
+    const result = runHelper('auto-update', '', '').trim();
+    if (result.indexOf('UPDATED|') === 0) return true;
+  } catch (_) {
+    // Update checks are best-effort; an offline launch must still work.
+  }
+  return false;
+}
 function ensureKey(account, name) {
   try { runHelper('has-key', account, ''); return; } catch (_) {}
   const response = app.displayDialog('第一次使用，请输入 ' + name + ' API Key。\n密钥只会保存在 macOS 钥匙串。', {
@@ -74,7 +83,7 @@ function importSiliconFlow() {
 }
 function globalMode() {
   const choices = ['OpenAI', 'DeepSeek V4 Flash', 'DeepSeek V4 Pro', 'SiliconFlow（需要本机兼容网关）', '恢复上一次配置'];
-  const picked = app.chooseFromList(choices, {withPrompt: '全局切换：之后打开的 Codex 都使用这个模型', defaultItems: ['OpenAI']});
+  const picked = app.chooseFromList(choices, {withPrompt: '切换当前 Codex：保留现有项目、聊天和权限；切换后请重启 Codex', defaultItems: ['OpenAI']});
   if (!picked) return;
   try {
     switch (picked[0]) {
@@ -109,15 +118,16 @@ function independentMode() {
     buttons: ['取消', '共享原目录', '安全 Worktree'], defaultButton: '安全 Worktree', cancelButton: '取消', withTitle: '独立 Codex 窗口'
   }).buttonReturned === '安全 Worktree' ? 'worktree' : 'shared';
   const result = runHelper('launch-session', profile, projectPath, mode).trim();
-  app.displayDialog('新的 Codex 已在 Terminal 中启动。\n\n模型：' + picked[0] + '\n项目：' + projectPath + '\n方式：' + (mode === 'worktree' ? '安全 Worktree' : '共享原目录') + '\n\n全局 Codex 配置没有被修改。', {buttons: ['好'], defaultButton: '好', withTitle: '已启动'});
+  app.displayDialog('新的 Codex 已在 Terminal 中启动。\n\n模型：' + picked[0] + '\n项目：' + projectPath + '\n方式：' + (mode === 'worktree' ? '安全 Worktree' : '共享原目录') + '\n\n这是独立新会话，不会显示桌面端旧聊天；旧项目和聊天请使用“当前 Codex 切换”。', {buttons: ['好'], defaultButton: '好', withTitle: '已启动'});
 }
 
 function run() {
   try {
-    const modes = ['新开独立 Codex 窗口', '全局切换默认模型'];
-    const picked = app.chooseFromList(modes, {withPrompt: '你想怎样使用？', defaultItems: ['新开独立 Codex 窗口']});
+    if (autoUpdate()) return;
+    const modes = ['当前 Codex 切换（保留项目和聊天）', '新开独立 Codex 窗口（新聊天）'];
+    const picked = app.chooseFromList(modes, {withPrompt: '选择使用方式', defaultItems: ['当前 Codex 切换（保留项目和聊天）']});
     if (!picked) return;
-    if (picked[0] === '新开独立 Codex 窗口') independentMode(); else globalMode();
+    if (picked[0] === '当前 Codex 切换（保留项目和聊天）') globalMode(); else independentMode();
   } catch (e) {
     if (String(e).includes('User canceled')) return;
     app.displayDialog('操作失败：\n' + e, {buttons: ['好'], defaultButton: '好', withIcon: 'stop'});
