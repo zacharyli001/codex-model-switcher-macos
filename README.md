@@ -50,6 +50,12 @@ OpenAI MVP 默认模型为 `gpt-5.6-sol`，可在 `Profile.openAI` 中修改。D
 
 截至 2026-09-14，SiliconFlow 公共文档展示的是 `/chat/completions`，而当前 Codex 自定义 provider 只支持 Responses wire protocol。选择 SiliconFlow 后，应用会检测 CC Switch；若缺少，会从 `farion1231/cc-switch` 官方 GitHub 下载最新 DMG 并安装到 `~/Applications`，随后通过 CC Switch 官方深链接导入 SiliconFlow 配置。出于 CC Switch 自身的安全确认机制，首次导入仍需在其预览页点击一次“导入/确认”，并确认路由总开关及 Codex 路由已开启。
 
+v3.1 不再写死 SiliconFlow 模型。应用会使用钥匙串中的 API Key 读取 `https://api.siliconflow.cn/v1/models`，显示账户可用的完整模型 ID，也可手动粘贴模型广场中的 ID。API Key 不会写入模型文件或 Git 仓库。
+
+## DMG 安装
+
+请在 GitHub Release 的 **Assets** 中下载 `Codex-Model-Switcher-macOS-v3.1.dmg`。不要下载 GitHub 自动生成的 `Source code (zip)`；它只是源码，不是安装包。
+
 ## 开发验证
 
 ```bash
