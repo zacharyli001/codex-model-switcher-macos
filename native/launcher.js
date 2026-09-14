@@ -3,6 +3,9 @@ const app = Application.currentApplication();
 app.includeStandardAdditions = true;
 
 function helperPath() {
+  const environment = $.NSProcessInfo.processInfo.environment;
+  const resources = environment.objectForKey('CODEX_SWITCHER_RESOURCES');
+  if (resources) return ObjC.unwrap(resources) + '/switcher.sh';
   const bundle = $.NSBundle.mainBundle.bundlePath.js;
   return bundle + '/Contents/Resources/switcher.sh';
 }
