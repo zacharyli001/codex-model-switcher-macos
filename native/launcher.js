@@ -37,15 +37,37 @@ function importSiliconFlow() {
   ensureCCSwitch();
   ensureKey('siliconflow', 'SiliconFlow');
   const key = runHelper('get-key', 'siliconflow', '').trim();
+  let models = [];
+  try {
+    models = runHelper('list-siliconflow-models', '', '').split('\n').map(x => x.trim()).filter(Boolean);
+  } catch (_) {}
+  const recommended = ['deepseek-ai/DeepSeek-V4-Flash', 'Pro/deepseek-ai/DeepSeek-V4'];
+  recommended.forEach(x => { if (models.indexOf(x) < 0) models.unshift(x); });
+  models.unshift('手动输入完整模型 ID…');
+  const selected = app.chooseFromList(models, {
+    withPrompt: '选择 SiliconFlow 模型\n列表来自你的 SiliconFlow 账户；也可以手动输入模型 ID。',
+    defaultItems: [models.indexOf('deepseek-ai/DeepSeek-V4-Flash') >= 0 ? 'deepseek-ai/DeepSeek-V4-Flash' : models[1]]
+  });
+  if (!selected) throw new Error('User canceled');
+  let model = selected[0];
+  if (model === '手动输入完整模型 ID…') {
+    const answer = app.displayDialog('请粘贴 SiliconFlow 模型广场中的完整模型 ID。\n例如：deepseek-ai/DeepSeek-V4-Flash', {
+      defaultAnswer: '', buttons: ['取消', '继续'], defaultButton: '继续', cancelButton: '取消', withTitle: 'SiliconFlow 模型 ID'
+    });
+    model = answer.textReturned.trim();
+    if (!model || model.indexOf('/') < 1) throw new Error('模型 ID 无效，应为类似 deepseek-ai/DeepSeek-V4-Flash 的完整名称。');
+  }
+  runHelper('save-siliconflow-model', model, '');
   const params = [
     'resource=provider', 'app=codex', 'name=' + encodeURIComponent('SiliconFlow'),
     'homepage=' + encodeURIComponent('https://siliconflow.cn'),
     'endpoint=' + encodeURIComponent('https://api.siliconflow.cn/v1'),
     'apiKey=' + encodeURIComponent(key),
-    'model=' + encodeURIComponent('deepseek-ai/DeepSeek-V4-Flash'),
+    'model=' + encodeURIComponent(model),
     'icon=siliconflow', 'enabled=true'
   ];
   app.openLocation('ccswitch://v1/import?' + params.join('&'));
+  return model;
 }
 function globalMode() {
   const choices = ['OpenAI', 'DeepSeek V4 Flash', 'DeepSeek V4 Pro', 'SiliconFlow（需要本机兼容网关）', '恢复上一次配置'];
@@ -57,8 +79,8 @@ function globalMode() {
       case 'DeepSeek V4 Flash': ensureKey('deepseek', 'DeepSeek'); runHelper('switch', 'deepseek-flash', ''); break;
       case 'DeepSeek V4 Pro': ensureKey('deepseek', 'DeepSeek'); runHelper('switch', 'deepseek-pro', ''); break;
       case 'SiliconFlow（需要本机兼容网关）':
-        importSiliconFlow();
-        app.displayDialog('CC Switch 已打开 SiliconFlow 导入页。\n\n请检查信息后点击“导入/确认”，并在 CC Switch 设置中确认“路由总开关”和“Codex”已开启。完成后重启 Codex。', {buttons: ['好'], defaultButton: '好', withTitle: '最后一次确认'});
+        const siliconModel = importSiliconFlow();
+        app.displayDialog('CC Switch 已打开 SiliconFlow 导入页。\n\n已选模型：' + siliconModel + '\n\n请检查后点击“导入/确认”，并确认“路由总开关”和“Codex”已开启。完成后重启 Codex。', {buttons: ['好'], defaultButton: '好', withTitle: '最后一次确认'});
         return;
       case '恢复上一次配置': runHelper('restore', '', ''); break;
     }
