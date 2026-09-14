@@ -258,3 +258,15 @@ launch_session() {
 
 case "${1:-}" in
   save-key) save_key "${2:?}" "${3:?}" ;;
+  has-key) has_key "${2:?}" ;;
+  get-key) /usr/bin/security find-generic-password -s "$SERVICE" -a "${2:?}" -w ;;
+  list-siliconflow-models) list_siliconflow_models ;;
+  save-siliconflow-model) save_siliconflow_model "${2:?}" ;;
+  cc-status) cc_app_path ;;
+  install-cc-switch) install_cc_switch ;;
+  auto-update) auto_update ;;
+  switch) backup_now; patch_config "${2:?}" ;;
+  launch-session) launch_session "${2:?}" "${3:?}" "${4:?}" ;;
+  restore) restore_last ;;
+  *) print -u2 '无效操作。'; exit 2 ;;
+esac
