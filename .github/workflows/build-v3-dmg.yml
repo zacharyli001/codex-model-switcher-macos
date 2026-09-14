@@ -1,6 +1,6 @@
 name: Build v3.1.2 DMG
 
-# Rebuild after the Cocoa launcher source is present.
+# Rebuild after the Cocoa launcher and current Codex catalog schema fixes.
 on:
   workflow_dispatch:
   push:
