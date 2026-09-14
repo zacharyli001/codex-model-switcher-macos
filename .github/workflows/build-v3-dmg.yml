@@ -1,6 +1,6 @@
-name: Build v3.1.4 DMG
+name: Build v3.1.5 DMG
 
-# Build and verify the macOS 13+ Universal release on a macOS 14 runner.
+# Build the complete macOS 13+ Universal release and create its GitHub Release.
 on:
   workflow_dispatch:
   push:
@@ -16,6 +16,10 @@ jobs:
     runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
+      - name: Verify switcher script is complete
+        run: |
+          zsh -n native/switcher.sh
+          test "$(tail -n 1 native/switcher.sh)" = "esac"
       - name: Build Universal app
         run: |
           chmod +x native/build-direct-app.sh native/switcher.sh
@@ -27,6 +31,8 @@ jobs:
           lipo "$BIN" -verify_arch arm64 x86_64
           test "$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$APP/Contents/Info.plist")" = "13.0"
           vtool -show-build "$BIN" | grep -q "minos 13.0"
+          zsh -n "$APP/Contents/Resources/switcher.sh"
+          test "$(tail -n 1 "$APP/Contents/Resources/switcher.sh")" = "esac"
           codesign --verify --deep --strict "$APP"
       - name: Create DMG
         run: |
@@ -34,9 +40,11 @@ jobs:
           mkdir -p "$STAGE"
           cp -R "outputs/Codex Model Switcher.app" "$STAGE/"
           ln -s /Applications "$STAGE/Applications"
-          hdiutil create -volname "Codex Model Switcher v3.1.4" -srcfolder "$STAGE" -ov -format UDZO "outputs/Codex-Model-Switcher-macOS-v3.1.4.dmg"
-          test -s "outputs/Codex-Model-Switcher-macOS-v3.1.4.dmg"
-      - name: Upload to v3.1.4 release
+          hdiutil create -volname "Codex Model Switcher v3.1.5" -srcfolder "$STAGE" -ov -format UDZO "outputs/Codex-Model-Switcher-macOS-v3.1.5.dmg"
+          test -s "outputs/Codex-Model-Switcher-macOS-v3.1.5.dmg"
+      - name: Create release and upload DMG
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload v3.1.4 "outputs/Codex-Model-Switcher-macOS-v3.1.4.dmg" --clobber
+        run: |
+          gh release view v3.1.5 >/dev/null 2>&1 || gh release create v3.1.5 --target "$GITHUB_SHA" --title "Codex Model Switcher v3.1.5" --notes "修复 v3.1.4 中 switcher.sh 被截断导致的第 261 行语法错误。兼容 macOS 13 及以上系统，同时支持 Apple Silicon 和 Intel。请下载 Assets 中的 DMG，不要下载 Source code ZIP。"
+          gh release upload v3.1.5 "outputs/Codex-Model-Switcher-macOS-v3.1.5.dmg" --clobber
