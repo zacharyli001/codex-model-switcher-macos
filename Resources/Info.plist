@@ -4,8 +4,8 @@
 <key>CFBundleExecutable</key><string>CodexModelSwitcher</string>
 <key>CFBundleIdentifier</key><string>com.codex-model-switcher.app</string>
 <key>CFBundleName</key><string>Codex Model Switcher</string>
-<key>CFBundleVersion</key><string>0.1.0</string>
-<key>CFBundleShortVersionString</key><string>0.1.0</string>
+<key>CFBundleVersion</key><string>3.1.1</string>
+<key>CFBundleShortVersionString</key><string>3.1.1</string>
 <key>LSUIElement</key><true/>
 <key>NSHighResolutionCapable</key><true/>
 </dict></plist>
