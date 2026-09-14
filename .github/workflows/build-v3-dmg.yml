@@ -1,6 +1,6 @@
-name: Build v3.1.2 DMG
+name: Build v3.1.3 DMG
 
-# Rebuild after the complete current Codex catalog schema fix.
+# Build the v3.1.3 auto-update and provider-routing release.
 on:
   workflow_dispatch:
   push:
@@ -26,9 +26,9 @@ jobs:
           mkdir -p "$STAGE"
           cp -R "outputs/Codex Model Switcher.app" "$STAGE/"
           ln -s /Applications "$STAGE/Applications"
-          hdiutil create -volname "Codex Model Switcher v3.1.2" -srcfolder "$STAGE" -ov -format UDZO "outputs/Codex-Model-Switcher-macOS-v3.1.2.dmg"
-          test -s "outputs/Codex-Model-Switcher-macOS-v3.1.2.dmg"
-      - name: Upload to v3.1.2 release
+          hdiutil create -volname "Codex Model Switcher v3.1.3" -srcfolder "$STAGE" -ov -format UDZO "outputs/Codex-Model-Switcher-macOS-v3.1.3.dmg"
+          test -s "outputs/Codex-Model-Switcher-macOS-v3.1.3.dmg"
+      - name: Upload to v3.1.3 release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload v3.1.2 "outputs/Codex-Model-Switcher-macOS-v3.1.2.dmg" --clobber
+        run: gh release upload v3.1.3 "outputs/Codex-Model-Switcher-macOS-v3.1.3.dmg" --clobber
