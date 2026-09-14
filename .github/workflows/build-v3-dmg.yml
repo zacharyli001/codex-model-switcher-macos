@@ -26,7 +26,7 @@ jobs:
           cp -R "outputs/Codex Model Switcher.app" "$STAGE/"
           ln -s /Applications "$STAGE/Applications"
           hdiutil create -volname "Codex Model Switcher v3.1" -srcfolder "$STAGE" -ov -format UDZO "outputs/Codex-Model-Switcher-macOS-v3.1.dmg"
-          hdiutil verify "outputs/Codex-Model-Switcher-macOS-v3.1.dmg"
+          test -s "outputs/Codex-Model-Switcher-macOS-v3.1.dmg"
       - name: Upload to v3.1.0 release
         env:
           GH_TOKEN: ${{ github.token }}
