@@ -1,17 +1,17 @@
 # Codex Model Switcher（macOS MVP）
 
-> v3.1.2 修复：macOS 使用真正的 Mach-O 启动器，不再使用会被 LaunchServices 误判或拒绝启动的脚本外壳。
+> v3.1.3：启动时自动检查 GitHub 最新版本并自动更新；补齐当前 Codex 模型目录字段，保留现有项目和聊天。
 
 一个原生轻量工具，在 OpenAI、DeepSeek V4 Flash、DeepSeek V4 Pro 与 SiliconFlow 网关配置之间切换。v3 新增“独立 Codex 窗口”：选模型、选项目，然后直接启动，不修改全局配置。
 
 ## v3 双模式
 
-- **新开独立 Codex 窗口**：选择 GPT-5.6 或 DeepSeek、选择任意项目，在 Terminal 启动一个独立会话。不需要重启桌面端，也不会改动当前 Codex 的模型。
-- **全局切换默认模型**：保留 v2 的一键切换、SiliconFlow + CC Switch 网关整合和一键恢复。
+- **当前 Codex 切换（默认）**：选择 GPT-5.6 或 DeepSeek，保留当前 Codex 的项目、聊天、MCP、插件和权限；切换后完全退出并重新打开 Codex 即可继续原聊天。
+- **新开独立 Codex 窗口**：选择 GPT-5.6 或 DeepSeek、选择任意项目，在 Terminal 启动一个独立新会话。独立窗口不会显示桌面端已有聊天。
 - **安全 Worktree**：对 Git 项目建立独立工作副本，适合 GPT-5.6 和 DeepSeek 同时推进同一项目。
 - **共享原目录**：两个窗口直接操作同一批文件；只建议用于任务明确分区的情况。
 
-独立窗口会复用你现有的 MCP、插件、Skills 和项目权限，但把模型配置放在 `~/.codex/model-switcher/sessions/`，因此不会相互抢占全局 `config.toml`。
+独立窗口会复用你现有的 MCP、插件、Skills 和项目权限，但把模型配置放在 `~/.codex/model-switcher/sessions/`，因此不会相互抢占全局 `config.toml`。每次打开工具时会从 GitHub 检查最新 DMG；发现新版本会自动下载、备份旧 App 并启动新版本。离线时会继续打开当前版本。
 
 ## 安全与配置保护
 
