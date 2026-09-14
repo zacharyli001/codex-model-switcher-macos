@@ -19,6 +19,18 @@ has_key() {
   /usr/bin/security find-generic-password -s "$SERVICE" -a "$1" -w >/dev/null
 }
 
+list_siliconflow_models() {
+  local key response
+  key="$(/usr/bin/security find-generic-password -s "$SERVICE" -a siliconflow -w)"
+  response="$(/usr/bin/curl -fsS --connect-timeout 12 --max-time 25 -H "Authorization: Bearer $key" 'https://api.siliconflow.cn/v1/models')"
+  print -r -- "$response" | /usr/bin/sed 's/},{/}\n{/g' | /usr/bin/sed -nE 's/.*"id"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' | /usr/bin/sort -u
+}
+
+save_siliconflow_model() {
+  mkdir -p "$REAL_CODEX_DIR/model-switcher"
+  print -r -- "$1" > "$REAL_CODEX_DIR/model-switcher/siliconflow-model.txt"
+}
+
 cc_app_path() {
   for candidate in "/Applications/CC Switch.app" "$HOME/Applications/CC Switch.app"; do
     [[ -d "$candidate" ]] && { print -r -- "$candidate"; return 0; }
@@ -169,6 +181,8 @@ case "${1:-}" in
   save-key) save_key "${2:?}" "${3:?}" ;;
   has-key) has_key "${2:?}" ;;
   get-key) /usr/bin/security find-generic-password -s "$SERVICE" -a "${2:?}" -w ;;
+  list-siliconflow-models) list_siliconflow_models ;;
+  save-siliconflow-model) save_siliconflow_model "${2:?}" ;;
   cc-status) cc_app_path ;;
   install-cc-switch) install_cc_switch ;;
   switch) backup_now; patch_config "${2:?}" ;;
