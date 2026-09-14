@@ -1,6 +1,6 @@
 # Codex Model Switcher（macOS MVP）
 
-> v3.1.4：兼容 macOS 13 及以上系统，提供 Apple Silicon 与 Intel 通用版本；启动时自动检查 GitHub 最新版本并自动更新。
+> v3.1.5：修复 v3.1.4 中切换脚本被截断导致的第 261 行语法错误；兼容 macOS 13 及以上系统，并提供 Apple Silicon 与 Intel 通用版本。
 
 一个原生轻量工具，在 OpenAI、DeepSeek V4 Flash、DeepSeek V4 Pro 与 SiliconFlow 网关配置之间切换。v3 新增“独立 Codex 窗口”：选模型、选项目，然后直接启动，不修改全局配置。
 
@@ -56,7 +56,7 @@ v3.1 不再写死 SiliconFlow 模型。应用会使用钥匙串中的 API Key �
 
 ## DMG 安装
 
-请在 GitHub Release 的 **Assets** 中下载 `Codex-Model-Switcher-macOS-v3.1.4.dmg`。不要下载 GitHub 自动生成的 `Source code (zip)`；它只是源码，不是安装包。
+请在 GitHub Release 的 **Assets** 中下载 `Codex-Model-Switcher-macOS-v3.1.5.dmg`。不要下载 GitHub 自动生成的 `Source code (zip)`；它只是源码，不是安装包。
 
 ## 开发验证
 
