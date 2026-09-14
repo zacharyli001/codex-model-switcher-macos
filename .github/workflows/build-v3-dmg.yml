@@ -1,0 +1,33 @@
+name: Build v3 DMG
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/build-v3-dmg.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  dmg:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build app
+        run: |
+          chmod +x native/build-direct-app.sh native/switcher.sh
+          ./native/build-direct-app.sh
+      - name: Create DMG
+        run: |
+          STAGE="$RUNNER_TEMP/dmg-stage"
+          mkdir -p "$STAGE"
+          cp -R "outputs/Codex Model Switcher.app" "$STAGE/"
+          ln -s /Applications "$STAGE/Applications"
+          hdiutil create -volname "Codex Model Switcher v3" -srcfolder "$STAGE" -ov -format UDZO "outputs/Codex-Model-Switcher-macOS-v3.dmg"
+          hdiutil verify "outputs/Codex-Model-Switcher-macOS-v3.dmg"
+      - name: Upload to v3.0.0 release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload v3.0.0 "outputs/Codex-Model-Switcher-macOS-v3.dmg" --clobber
