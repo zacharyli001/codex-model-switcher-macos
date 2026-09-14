@@ -1,5 +1,7 @@
 # Codex Model Switcher（macOS MVP）
 
+> v3.1.1 修复：改用普通 macOS App Bundle 启动器，不再使用可能被系统误判为 Droplet 的 AppleScript Applet 外壳。
+
 一个原生轻量工具，在 OpenAI、DeepSeek V4 Flash、DeepSeek V4 Pro 与 SiliconFlow 网关配置之间切换。v3 新增“独立 Codex 窗口”：选模型、选项目，然后直接启动，不修改全局配置。
 
 ## v3 双模式
