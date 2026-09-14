@@ -32,6 +32,22 @@
       "comp_hash": "3000",
       "reasoning_summary_format": "experimental",
       "default_reasoning_summary": "none",
+      "availability_nux": null,
+      "upgrade": null,
+      "model_messages": {
+        "instructions_template": "You are Codex, an agent based on GPT-5.",
+        "instructions_variables": {
+          "personality_default": "",
+          "personality_friendly": "",
+          "personality_pragmatic": ""
+        },
+        "approvals": null
+      },
+      "experimental_supported_tools": [],
+      "supports_search_tool": true,
+      "default_service_tier": null,
+      "supports_reasoning_summaries": true,
+      "base_instructions": "You are Codex, an agent based on GPT-5.",
       "shell_type": "shell_command",
       "visibility": "list",
       "minimal_client_version": "0.144.0",
@@ -70,6 +86,22 @@
       "comp_hash": "3000",
       "reasoning_summary_format": "experimental",
       "default_reasoning_summary": "none",
+      "availability_nux": null,
+      "upgrade": null,
+      "model_messages": {
+        "instructions_template": "You are Codex, an agent based on GPT-5.",
+        "instructions_variables": {
+          "personality_default": "",
+          "personality_friendly": "",
+          "personality_pragmatic": ""
+        },
+        "approvals": null
+      },
+      "experimental_supported_tools": [],
+      "supports_search_tool": true,
+      "default_service_tier": null,
+      "supports_reasoning_summaries": true,
+      "base_instructions": "You are Codex, an agent based on GPT-5.",
       "shell_type": "shell_command",
       "visibility": "list",
       "minimal_client_version": "0.144.0",
