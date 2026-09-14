@@ -1,4 +1,4 @@
-name: Build v3 DMG
+name: Build v3.1 DMG
 
 on:
   workflow_dispatch:
@@ -25,9 +25,9 @@ jobs:
           mkdir -p "$STAGE"
           cp -R "outputs/Codex Model Switcher.app" "$STAGE/"
           ln -s /Applications "$STAGE/Applications"
-          hdiutil create -volname "Codex Model Switcher v3" -srcfolder "$STAGE" -ov -format UDZO "outputs/Codex-Model-Switcher-macOS-v3.dmg"
-          hdiutil verify "outputs/Codex-Model-Switcher-macOS-v3.dmg"
-      - name: Upload to v3.0.0 release
+          hdiutil create -volname "Codex Model Switcher v3.1" -srcfolder "$STAGE" -ov -format UDZO "outputs/Codex-Model-Switcher-macOS-v3.1.dmg"
+          hdiutil verify "outputs/Codex-Model-Switcher-macOS-v3.1.dmg"
+      - name: Upload to v3.1.0 release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload v3.0.0 "outputs/Codex-Model-Switcher-macOS-v3.dmg" --clobber
+        run: gh release upload v3.1.0 "outputs/Codex-Model-Switcher-macOS-v3.1.dmg" --clobber
