@@ -1,6 +1,6 @@
-name: Build v3.1.3 DMG
+name: Build v3.1.4 DMG
 
-# Build the v3.1.3 auto-update and provider-routing release.
+# Build and verify the macOS 13+ Universal release on a macOS 14 runner.
 on:
   workflow_dispatch:
   push:
@@ -13,22 +13,30 @@ permissions:
 
 jobs:
   dmg:
-    runs-on: macos-15
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
-      - name: Build app
+      - name: Build Universal app
         run: |
           chmod +x native/build-direct-app.sh native/switcher.sh
           ./native/build-direct-app.sh
+      - name: Verify macOS 13+ compatibility
+        run: |
+          APP="outputs/Codex Model Switcher.app"
+          BIN="$APP/Contents/MacOS/CodexModelSwitcher"
+          lipo "$BIN" -verify_arch arm64 x86_64
+          test "$(/usr/libexec/PlistBuddy -c 'Print :LSMinimumSystemVersion' "$APP/Contents/Info.plist")" = "13.0"
+          vtool -show-build "$BIN" | grep -q "minos 13.0"
+          codesign --verify --deep --strict "$APP"
       - name: Create DMG
         run: |
           STAGE="$RUNNER_TEMP/dmg-stage"
           mkdir -p "$STAGE"
           cp -R "outputs/Codex Model Switcher.app" "$STAGE/"
           ln -s /Applications "$STAGE/Applications"
-          hdiutil create -volname "Codex Model Switcher v3.1.3" -srcfolder "$STAGE" -ov -format UDZO "outputs/Codex-Model-Switcher-macOS-v3.1.3.dmg"
-          test -s "outputs/Codex-Model-Switcher-macOS-v3.1.3.dmg"
-      - name: Upload to v3.1.3 release
+          hdiutil create -volname "Codex Model Switcher v3.1.4" -srcfolder "$STAGE" -ov -format UDZO "outputs/Codex-Model-Switcher-macOS-v3.1.4.dmg"
+          test -s "outputs/Codex-Model-Switcher-macOS-v3.1.4.dmg"
+      - name: Upload to v3.1.4 release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload v3.1.3 "outputs/Codex-Model-Switcher-macOS-v3.1.3.dmg" --clobber
+        run: gh release upload v3.1.4 "outputs/Codex-Model-Switcher-macOS-v3.1.4.dmg" --clobber
