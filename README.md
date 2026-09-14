@@ -23,7 +23,7 @@
 
 ## 直接使用（推荐）
 
-请从 GitHub Releases 下载对应版本的 ZIP，解压后双击 `Codex Model Switcher.app`。这是不依赖 Xcode 的轻量 GUI 版本。
+请从 GitHub Releases 的 Assets 下载对应版本的 DMG，将 `Codex Model Switcher.app` 拖入“应用程序”后再双击打开。这是不依赖 Xcode 的轻量 GUI 版本。
 
 第一次选择 DeepSeek 或 SiliconFlow 时输入一次 API Key；以后只需双击应用并选择模型。每次切换后完全退出并重新打开 Codex。
 
@@ -56,7 +56,7 @@ v3.1 不再写死 SiliconFlow 模型。应用会使用钥匙串中的 API Key �
 
 ## DMG 安装
 
-请在 GitHub Release 的 **Assets** 中下载 `Codex-Model-Switcher-macOS-v3.1.dmg`。不要下载 GitHub 自动生成的 `Source code (zip)`；它只是源码，不是安装包。
+请在 GitHub Release 的 **Assets** 中下载 `Codex-Model-Switcher-macOS-v3.1.4.dmg`。不要下载 GitHub 自动生成的 `Source code (zip)`；它只是源码，不是安装包。
 
 ## 开发验证
 
